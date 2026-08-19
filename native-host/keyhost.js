@@ -48,20 +48,30 @@ function readKeyFile() {
   }
 }
 
-const request = readMessage();
-if (!request || request.type !== 'get-key') {
-  process.exit(1);
+function handle(request) {
+  if (request.type !== 'get-key') {
+    return { ok: false };
+  }
+
+  let apiKey = process.env.OPENCODE_API_KEY || '';
+  if (!apiKey) {
+    apiKey = readKeyFile();
+  }
+
+  return {
+    ok: !!apiKey,
+    provider: 'zen',
+    baseUrl: 'https://opencode.ai/zen/v1',
+    model: process.env.VIBEMONKEY_MODEL || 'deepseek-v4-flash-free',
+    apiKey: apiKey
+  };
 }
 
-let apiKey = process.env.OPENCODE_API_KEY || '';
-if (!apiKey) {
-  apiKey = readKeyFile();
+// Keep the host alive: read messages until stdin closes. Exiting right after
+// a reply makes Chrome fire onDisconnect with lastError, which the extension
+// would misread as a failure.
+while (true) {
+  const request = readMessage();
+  if (!request) break;
+  writeMessage(handle(request));
 }
-
-writeMessage({
-  ok: !!apiKey,
-  provider: 'zen',
-  baseUrl: 'https://opencode.ai/zen/v1',
-  model: process.env.VIBEMONKEY_MODEL || 'deepseek-v4-flash-free',
-  apiKey: apiKey
-});

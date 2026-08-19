@@ -101,8 +101,11 @@ function importFromSystem() {
         return;
     }
 
+    let received = false;
+
     port.onMessage.addListener((msg) => {
         if (msg.ok && msg.apiKey) {
+            received = true;
             apiKeyInput.value = msg.apiKey;
             const provider = PROVIDERS[msg.provider] ? msg.provider : 'zen';
             providerSelect.value = provider;
@@ -121,7 +124,7 @@ function importFromSystem() {
     });
 
     port.onDisconnect.addListener(() => {
-        if (chrome.runtime.lastError) {
+        if (!received && chrome.runtime.lastError) {
             importStatus.textContent = 'Native host not found. Run native-host/install.sh with your extension ID.';
             importStatus.classList.add('error');
         }
