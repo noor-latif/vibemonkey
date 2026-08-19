@@ -18,13 +18,23 @@ if [ -z "$EXT_ID" ]; then
   exit 1
 fi
 
-if [ ! -x "$SRC_DIR/keyhost.js" ] && [ ! -x "$DEST_DIR/keyhost.js" ]; then
-  echo "keyhost.js not found or not executable." >&2
+NODE_BIN="$(command -v node)"
+if [ -z "$NODE_BIN" ]; then
+  echo "node not found on PATH. Install Node.js and re-run." >&2
   exit 1
 fi
 
 mkdir -p "$DEST_DIR" "$CHROME_DIR"
 install -m 755 "$SRC_DIR/keyhost.js" "$DEST_DIR/keyhost.js"
+
+# GUI-launched Chrome does not inherit the shell PATH (e.g. mise-managed
+# Node lives outside /usr/bin:/bin), so bake the resolved node path into the
+# installed shebang.
+sed -i "1s|^#!.*|#!$NODE_BIN|" "$DEST_DIR/keyhost.js"
+if ! "$NODE_BIN" -e '1' >/dev/null 2>&1; then
+  echo "node at $NODE_BIN is not runnable." >&2
+  exit 1
+fi
 
 cat > "$CHROME_DIR/$HOST_NAME.json" <<EOF
 {
