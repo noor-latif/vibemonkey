@@ -1,24 +1,39 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const NOUS_DEFAULT_BASE_URL = 'https://inference-api.nousresearch.com/v1';
+
 let genAI;
-let selectedModel = 'gemini-1.5-flash'; // Default model
+let config = {
+  provider: 'gemini',
+  model: 'gemini-1.5-flash', // Default model
+  baseUrl: NOUS_DEFAULT_BASE_URL
+};
 let domSketch = null;
 let generatedScript = '';
 
 // --- Initialization and Configuration ---
 
 function initializeApp() {
-  initializeGenAI();
+  initializeConfig();
   // We will request the DOM sketch on demand, not on initialization.
 }
 
-function initializeGenAI() {
-  chrome.storage.local.get(['apiKey', 'model'], (data) => {
+function initializeConfig() {
+  chrome.storage.local.get(['apiKey', 'provider', 'model', 'baseUrl'], (data) => {
     if (data.apiKey) {
-      genAI = new GoogleGenerativeAI(data.apiKey);
+      config.apiKey = data.apiKey;
+    }
+    if (data.provider) {
+      config.provider = data.provider;
     }
     if (data.model) {
-      selectedModel = data.model;
+      config.model = data.model;
+    }
+    if (data.baseUrl) {
+      config.baseUrl = data.baseUrl;
+    }
+    if (config.provider === 'gemini') {
+      genAI = new GoogleGenerativeAI(config.apiKey);
     }
   });
 }
@@ -37,7 +52,7 @@ function handleGenerateClick() {
     return;
   }
 
-  if (!genAI) {
+  if (!config.apiKey) {
     resultCodeElement.textContent = 'Error: API key not set. Please set it in the extension options.';
     return;
   }
@@ -54,12 +69,9 @@ function handleGenerateClick() {
       resultCodeElement.textContent = 'Generating script...';
 
       try {
-        // 2. Build the prompt string with the received sketch.
-        const fullPrompt = buildPrompt(userPrompt, domSketch);
-        const model = genAI.getGenerativeModel({ model: selectedModel });
-        const result = await model.generateContent(fullPrompt);
-        const response = await result.response;
-        generatedScript = parseScriptFromResponse(response.text());
+        // 2. Generate the userscript with the configured provider.
+        const generated = await generateContent(userPrompt, domSketch);
+        generatedScript = parseScriptFromResponse(generated);
 
         if (!isValidUserscript(generatedScript)) {
           throw new Error("Generated code is not a valid userscript.");
@@ -67,7 +79,7 @@ function handleGenerateClick() {
         resultCodeElement.textContent = generatedScript;
         document.getElementById('result-actions').classList.add('visible');
       } catch (error) {
-        console.error("Gemini API Error:", error);
+        console.error("AI API Error:", error);
         resultCodeElement.textContent = 'Error: Failed to generate script. ' + error.message;
       } finally {
         setLoadingState(false);
@@ -120,6 +132,55 @@ function handleSaveClick() {
   }
 }
 
+// --- Provider dispatch ---
+
+async function generateContent(userPrompt, sketch) {
+  if (config.provider === 'nous') {
+    return generateWithNous(userPrompt, sketch);
+  }
+  return generateWithGemini(userPrompt, sketch);
+}
+
+async function generateWithGemini(userPrompt, sketch) {
+  const model = genAI.getGenerativeModel({ model: config.model });
+  const result = await model.generateContent(buildPrompt(userPrompt, sketch));
+  const response = await result.response;
+  return response.text();
+}
+
+async function generateWithNous(userPrompt, sketch) {
+  const baseUrl = (config.baseUrl || NOUS_DEFAULT_BASE_URL).replace(/\/+$/, '');
+  const response = await fetch(baseUrl + '/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + config.apiKey
+    },
+    body: JSON.stringify({
+      model: config.model,
+      messages: [
+        { role: 'system', content: buildSystemInstruction() },
+        { role: 'user', content: buildUserPrompt(userPrompt, sketch) }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error('Nous Portal API error (' + response.status + '): ' + errorText);
+  }
+
+  const data = await response.json();
+  const text = data.choices && data.choices[0] && data.choices[0].message
+    ? data.choices[0].message.content
+    : null;
+
+  if (!text) {
+    throw new Error('Empty response from Nous Portal API.');
+  }
+  return text;
+}
+
 // --- Helper Functions ---
 
 function setLoadingState(isLoading) {
@@ -127,9 +188,8 @@ function setLoadingState(isLoading) {
   generateButton.textContent = isLoading ? 'Generating...' : 'Generate Script';
 }
 
-function buildPrompt(userPrompt, sketch) {
-  // This function now returns a single, well-formatted string.
-  const systemInstruction = `
+function buildSystemInstruction() {
+  return `
 You generate Tampermonkey/Greasemonkey userscripts that make VISUAL-ONLY changes.
 Prioritize robustness, safety, idempotency, and accessibility.
 Always produce:
@@ -138,16 +198,21 @@ Always produce:
 3) A "Post-script Checklist" to verify functionality.
 Do not access local storage, cookies, or use eval/iframes.
 `;
+}
 
+function buildUserPrompt(userPrompt, sketch) {
   return `
-${systemInstruction.trim()}
-
 ### GOAL
 ${userPrompt}
 
 ### PAGE CONTEXT
 ${sketch}
 `;
+}
+
+function buildPrompt(userPrompt, sketch) {
+  // Combined prompt for providers that do not support a separate system message.
+  return buildSystemInstruction().trim() + '\n\n' + buildUserPrompt(userPrompt, sketch).trim();
 }
 
 function parseScriptFromResponse(responseText) {
@@ -194,8 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
-      if (changes.apiKey || changes.model) {
-        initializeGenAI();
+      if (changes.apiKey || changes.provider || changes.model || changes.baseUrl) {
+        initializeConfig();
       }
     }
   });

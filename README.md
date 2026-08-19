@@ -7,11 +7,12 @@ VibeMonkey is a Chrome extension that acts as your AI companion for generating u
 
 ## Features
 
--   **AI-Powered Script Generation**: Uses Google's Gemini models to understand your requests and generate high-quality userscripts.
+-   **AI-Powered Script Generation**: Uses Google's Gemini models or the Nous Research Portal to understand your requests and generate high-quality userscripts.
+-   **Multi-Provider**: Choose between Google Gemini and the [Nous Research Portal](https://portal.nousresearch.com) (OpenAI-compatible endpoint) — including free-tier models such as `deepseek-v4-flash-0731-free`.
 -   **Context-Aware**: Analyzes the current page's structure to create robust and effective scripts.
 -   **Side Panel UI**: An easy-to-use interface that lives in your browser's side panel.
 -   **Secure**: Your API key is stored locally and is never exposed.
--   **Customizable**: Choose the Gemini model that best suits your needs.
+-   **Customizable**: Choose the model that best suits your needs.
 
 ## Installation
 
@@ -39,7 +40,8 @@ VibeMonkey is a Chrome extension that acts as your AI companion for generating u
 1.  **Set your API Key**:
     -   Click the VibeMonkey icon in the Chrome toolbar.
     -   Click "Settings".
-    -   Enter your Google AI API key and choose a model.
+    -   Choose a **Provider** (`Google Gemini` or `Nous Research Portal`), enter your API key, and pick a model (e.g. `deepseek-v4-flash-0731-free` for the Nous free tier).
+    -   When using the Nous Research Portal you can point the **Base URL** at any OpenAI-compatible endpoint (the default is `https://inference-api.nousresearch.com/v1`).
     -   Click "Save".
 2.  **Generate a Script**:
     -   Open the webpage you want to modify.

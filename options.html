@@ -81,16 +81,26 @@
         <h1>VibeMonkey Settings</h1>
 
         <div class="input-group">
+            <label for="provider-select">Provider:</label>
+            <select id="provider-select">
+                <option value="gemini">Google Gemini</option>
+                <option value="nous">Nous Research Portal</option>
+            </select>
+        </div>
+
+        <div class="input-group">
             <label for="api-key">API Key:</label>
-            <input type="password" id="api-key" size="50" placeholder="Enter your Google AI API Key">
+            <input type="password" id="api-key" size="50" placeholder="Enter your API key">
+        </div>
+
+        <div class="input-group" id="base-url-group">
+            <label for="base-url">Base URL:</label>
+            <input type="text" id="base-url" size="50" value="https://inference-api.nousresearch.com/v1">
         </div>
 
         <div class="input-group">
             <label for="model-select">Select Model:</label>
             <select id="model-select">
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option>
-                <option value="gemini-pro">Gemini Pro (Vision)</option>
             </select>
         </div>
 
