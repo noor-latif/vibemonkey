@@ -72,6 +72,16 @@
             height: 1.2em;
             color: #28a745;
         }
+
+        .status-text {
+            margin: 0;
+            font-size: 0.85em;
+            min-height: 1.1em;
+        }
+
+        #import-status.error {
+            color: #d93025;
+        }
     </style>
 </head>
 
@@ -84,7 +94,6 @@
             <label for="provider-select">Provider:</label>
             <select id="provider-select">
                 <option value="gemini">Google Gemini</option>
-                <option value="nous">Nous Research Portal</option>
                 <option value="zen">OpenCode Zen</option>
             </select>
         </div>
@@ -93,6 +102,9 @@
             <label for="api-key">API Key:</label>
             <input type="password" id="api-key" size="50" placeholder="Enter your API key">
         </div>
+
+        <button id="import-button">Import from system</button>
+        <p id="import-status" class="status-text"></p>
 
         <div class="input-group" id="base-url-group">
             <label for="base-url">Base URL:</label>

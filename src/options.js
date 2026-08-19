@@ -5,6 +5,10 @@ const baseUrlGroup = document.getElementById('base-url-group');
 const baseUrlInput = document.getElementById('base-url');
 const modelSelect = document.getElementById('model-select');
 const status = document.getElementById('status');
+const importButton = document.getElementById('import-button');
+const importStatus = document.getElementById('import-status');
+
+const NATIVE_HOST = 'com.vibemonkey.keyhost';
 
 const PROVIDERS = {
     gemini: {
@@ -14,18 +18,6 @@ const PROVIDERS = {
             { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
             { value: 'gemini-1.5-pro-latest', label: 'Gemini 1.5 Pro' },
             { value: 'gemini-pro', label: 'Gemini Pro (Vision)' }
-        ]
-    },
-    nous: {
-        label: 'Nous Research Portal',
-        baseUrl: 'https://inference-api.nousresearch.com/v1',
-        models: [
-            { value: 'tencent/hy3:free', label: 'Tencent Hy3 (Free)' },
-            { value: 'stepfun/step-3.7-flash:free', label: 'StepFun Step 3.7 Flash (Free)' },
-            { value: 'poolside/laguna-s-2.1:free', label: 'Poolside Laguna S 2.1 (Free)' },
-            { value: 'poolside/laguna-xs-2.1:free', label: 'Poolside Laguna XS 2.1 (Free)' },
-            { value: 'upstage/solar-pro4:free', label: 'Upstage Solar Pro 4 (Free)' },
-            { value: 'meituan/longcat-2.0:free', label: 'Meituan LongCat 2.0 (Free)' }
         ]
     },
     zen: {
@@ -96,6 +88,50 @@ saveButton.addEventListener('click', () => {
 
 providerSelect.addEventListener('change', renderProvider);
 
+function importFromSystem() {
+    importStatus.textContent = 'Reading key from system...';
+    importStatus.classList.remove('error');
+
+    let port;
+    try {
+        port = chrome.runtime.connectNative(NATIVE_HOST);
+    } catch (e) {
+        importStatus.textContent = 'Native host not available. Run native-host/install.sh with your extension ID.';
+        importStatus.classList.add('error');
+        return;
+    }
+
+    port.onMessage.addListener((msg) => {
+        if (msg.ok && msg.apiKey) {
+            apiKeyInput.value = msg.apiKey;
+            const provider = PROVIDERS[msg.provider] ? msg.provider : 'zen';
+            providerSelect.value = provider;
+            if (PROVIDERS[provider].baseUrl) {
+                baseUrlInput.value = msg.baseUrl || PROVIDERS[provider].baseUrl;
+            }
+            renderProvider();
+            if (msg.model && Array.from(modelSelect.options).some((o) => o.value === msg.model)) {
+                modelSelect.value = msg.model;
+            }
+            importStatus.textContent = 'Imported from system. Click Save to store it.';
+        } else {
+            importStatus.textContent = 'No key found on system. Is OPENCODE_API_KEY set and the native host installed?';
+            importStatus.classList.add('error');
+        }
+    });
+
+    port.onDisconnect.addListener(() => {
+        if (chrome.runtime.lastError) {
+            importStatus.textContent = 'Native host not found. Run native-host/install.sh with your extension ID.';
+            importStatus.classList.add('error');
+        }
+    });
+
+    port.postMessage({ type: 'get-key' });
+}
+
+importButton.addEventListener('click', importFromSystem);
+
 document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get(['apiKey', 'provider', 'model', 'baseUrl'], (data) => {
         if (data.apiKey) {
@@ -110,6 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProvider();
         if (data.model && Array.from(modelSelect.options).some((o) => o.value === data.model)) {
             modelSelect.value = data.model;
+        }
+        if (!data.apiKey) {
+            importFromSystem();
         }
     });
 });

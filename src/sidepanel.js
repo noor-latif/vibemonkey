@@ -1,12 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const NOUS_DEFAULT_BASE_URL = 'https://inference-api.nousresearch.com/v1';
+const ZEN_DEFAULT_BASE_URL = 'https://opencode.ai/zen/v1';
 
 let genAI;
 let config = {
   provider: 'gemini',
   model: 'gemini-1.5-flash', // Default model
-  baseUrl: NOUS_DEFAULT_BASE_URL
+  baseUrl: ZEN_DEFAULT_BASE_URL
 };
 let domSketch = null;
 let generatedScript = '';
@@ -149,7 +149,7 @@ async function generateWithGemini(userPrompt, sketch) {
 }
 
 async function generateWithOpenAICompat(userPrompt, sketch) {
-  const baseUrl = (config.baseUrl || NOUS_DEFAULT_BASE_URL).replace(/\/+$/, '');
+  const baseUrl = (config.baseUrl || ZEN_DEFAULT_BASE_URL).replace(/\/+$/, '');
   const response = await fetch(baseUrl + '/chat/completions', {
     method: 'POST',
     headers: {
