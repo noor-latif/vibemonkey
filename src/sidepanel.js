@@ -135,8 +135,8 @@ function handleSaveClick() {
 // --- Provider dispatch ---
 
 async function generateContent(userPrompt, sketch) {
-  if (config.provider === 'nous') {
-    return generateWithNous(userPrompt, sketch);
+  if (config.provider === 'nous' || config.provider === 'zen') {
+    return generateWithOpenAICompat(userPrompt, sketch);
   }
   return generateWithGemini(userPrompt, sketch);
 }
@@ -148,7 +148,7 @@ async function generateWithGemini(userPrompt, sketch) {
   return response.text();
 }
 
-async function generateWithNous(userPrompt, sketch) {
+async function generateWithOpenAICompat(userPrompt, sketch) {
   const baseUrl = (config.baseUrl || NOUS_DEFAULT_BASE_URL).replace(/\/+$/, '');
   const response = await fetch(baseUrl + '/chat/completions', {
     method: 'POST',
@@ -167,7 +167,7 @@ async function generateWithNous(userPrompt, sketch) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error('Nous Portal API error (' + response.status + '): ' + errorText);
+    throw new Error('API error (' + response.status + '): ' + errorText);
   }
 
   const data = await response.json();
@@ -176,7 +176,7 @@ async function generateWithNous(userPrompt, sketch) {
     : null;
 
   if (!text) {
-    throw new Error('Empty response from Nous Portal API.');
+    throw new Error('Empty response from API.');
   }
   return text;
 }

@@ -7,8 +7,8 @@ VibeMonkey is a Chrome extension that acts as your AI companion for generating u
 
 ## Features
 
--   **AI-Powered Script Generation**: Uses Google's Gemini models or the Nous Research Portal to understand your requests and generate high-quality userscripts.
--   **Multi-Provider**: Choose between Google Gemini and the [Nous Research Portal](https://portal.nousresearch.com) (OpenAI-compatible endpoint) — including free-tier models such as `deepseek-v4-flash-0731-free`.
+-   **AI-Powered Script Generation**: Uses Google's Gemini models or free models from the [Nous Research Portal](https://portal.nousresearch.com) and OpenCode Zen to understand your requests and generate high-quality userscripts.
+-   **Multi-Provider**: Choose between Google Gemini, the Nous Research Portal (OpenAI-compatible, `https://inference-api.nousresearch.com/v1`) and OpenCode Zen (OpenAI-compatible, `https://opencode.ai/zen/v1`). Only **free** models are listed (e.g. `tencent/hy3:free` on Nous, `deepseek-v4-flash-free` on Zen).
 -   **Context-Aware**: Analyzes the current page's structure to create robust and effective scripts.
 -   **Side Panel UI**: An easy-to-use interface that lives in your browser's side panel.
 -   **Secure**: Your API key is stored locally and is never exposed.
@@ -40,7 +40,7 @@ VibeMonkey is a Chrome extension that acts as your AI companion for generating u
 1.  **Set your API Key**:
     -   Click the VibeMonkey icon in the Chrome toolbar.
     -   Click "Settings".
-    -   Choose a **Provider** (`Google Gemini` or `Nous Research Portal`), enter your API key, and pick a model (e.g. `deepseek-v4-flash-0731-free` for the Nous free tier).
+    -   Choose a **Provider** (`Google Gemini`, `Nous Research Portal` or `OpenCode Zen`), enter your API key, and pick a model. Only free models are listed, e.g. `tencent/hy3:free` (Nous) or `deepseek-v4-flash-free` (Zen).
     -   When using the Nous Research Portal you can point the **Base URL** at any OpenAI-compatible endpoint (the default is `https://inference-api.nousresearch.com/v1`).
     -   Click "Save".
 2.  **Generate a Script**:

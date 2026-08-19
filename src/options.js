@@ -20,11 +20,43 @@ const PROVIDERS = {
         label: 'Nous Research Portal',
         baseUrl: 'https://inference-api.nousresearch.com/v1',
         models: [
-            { value: 'deepseek-v4-flash-0731-free', label: 'DeepSeek V4 Flash 0731 (Free)' },
-            { value: 'deepseek-v4-flash-0731', label: 'DeepSeek V4 Flash 0731' },
-            { value: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
-            { value: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
-            { value: 'hermes-4-70b', label: 'Hermes 4 70B' }
+            { value: 'tencent/hy3:free', label: 'Tencent Hy3 (Free)' },
+            { value: 'stepfun/step-3.7-flash:free', label: 'StepFun Step 3.7 Flash (Free)' },
+            { value: 'poolside/laguna-s-2.1:free', label: 'Poolside Laguna S 2.1 (Free)' },
+            { value: 'poolside/laguna-xs-2.1:free', label: 'Poolside Laguna XS 2.1 (Free)' },
+            { value: 'upstage/solar-pro4:free', label: 'Upstage Solar Pro 4 (Free)' },
+            { value: 'meituan/longcat-2.0:free', label: 'Meituan LongCat 2.0 (Free)' }
+        ]
+    },
+    zen: {
+        label: 'OpenCode Zen',
+        baseUrl: 'https://opencode.ai/zen/v1',
+        models: [
+            { value: 'deepseek-v4-flash-free', label: 'DeepSeek V4 Flash (Free)' },
+            { value: 'hy3-free', label: 'Hy3 (Free)' },
+            { value: 'hy3-preview-free', label: 'Hy3 Preview (Free)' },
+            { value: 'ling-3.0-flash-free', label: 'Ling 3.0 Flash (Free)' },
+            { value: 'ling-2.6-flash-free', label: 'Ling 2.6 Flash (Free)' },
+            { value: 'ling-3.0-tiny-free', label: 'Ling 3.0 Tiny (Free)' },
+            { value: 'laguna-s-2.1-free', label: 'Laguna S 2.1 (Free)' },
+            { value: 'nemotron-3.5-lightning-free', label: 'Nemotron 3.5 Lightning (Free)' },
+            { value: 'nemotron-3-super-free', label: 'Nemotron 3 Super (Free)' },
+            { value: 'nemotron-3-ultra-free', label: 'Nemotron 3 Ultra (Free)' },
+            { value: 'ring-2.6-1t-free', label: 'Ring 2.6 1T (Free)' },
+            { value: 'kimi-k2.5-free', label: 'Kimi K2.5 (Free)' },
+            { value: 'north-mini-code-free', label: 'North Mini Code (Free)' },
+            { value: 'minimax-m3-free', label: 'MiniMax M3 (Free)' },
+            { value: 'minimax-m2.5-free', label: 'MiniMax M2.5 (Free)' },
+            { value: 'minimax-m2.1-free', label: 'MiniMax M2.1 (Free)' },
+            { value: 'glm-4.7-free', label: 'GLM 4.7 (Free)' },
+            { value: 'glm-5-free', label: 'GLM 5 (Free)' },
+            { value: 'qwen3.6-plus-free', label: 'Qwen 3.6 Plus (Free)' },
+            { value: 'mimo-v2-pro-free', label: 'MiMo V2 Pro (Free)' },
+            { value: 'mimo-v2-flash-free', label: 'MiMo V2 Flash (Free)' },
+            { value: 'mimo-v2.5-free', label: 'MiMo V2.5 (Free)' },
+            { value: 'mimo-v2-omni-free', label: 'MiMo V2 Omni (Free)' },
+            { value: 'trinity-large-preview-free', label: 'Trinity Large Preview (Free)' },
+            { value: 'longcat-2.0-free', label: 'LongCat 2.0 (Free)' }
         ]
     }
 };
@@ -41,11 +73,9 @@ function renderProvider() {
         modelSelect.appendChild(option);
     });
 
-    if (provider === 'nous') {
+    if (PROVIDERS[provider].baseUrl) {
         baseUrlGroup.style.display = 'flex';
-        if (!baseUrlInput.value) {
-            baseUrlInput.value = PROVIDERS.nous.baseUrl;
-        }
+        baseUrlInput.value = PROVIDERS[provider].baseUrl;
     } else {
         baseUrlGroup.style.display = 'none';
     }
@@ -55,7 +85,7 @@ saveButton.addEventListener('click', () => {
     const apiKey = apiKeyInput.value;
     const provider = providerSelect.value;
     const model = modelSelect.value;
-    const baseUrl = provider === 'nous' ? baseUrlInput.value : '';
+    const baseUrl = PROVIDERS[provider].baseUrl ? baseUrlInput.value : '';
     chrome.storage.local.set({ apiKey: apiKey, provider: provider, model: model, baseUrl: baseUrl }, () => {
         status.textContent = 'Settings saved.';
         setTimeout(() => {
